@@ -1,104 +1,124 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  TextField,
-  Typography,
-  Grid,
-} from "@mui/material";
 import { toast } from "react-toastify";
 
-const API = "http://localhost:5001/api/products";
+import {
+  Container,
+  Typography,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Stack,
+  IconButton
+} from "@mui/material";
+
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+import ProductForm from "./ProductForm";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    price: "",
-    stock: "",
-    imageUrl: "",
-  });
-
+  const [openForm, setOpenForm] = useState(false);
+  const [editProduct, setEditProduct] = useState(null);
   const role = localStorage.getItem("role");
-
-  const fetchProducts = async () => {
-    const res = await axios.get(API);
-    setProducts(res.data);
-  };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const fetchProducts = () => {
+    axios.get("http://localhost:5001/api/products")
+      .then(res => setProducts(res.data));
   };
 
-  const addProduct = async () => {
-    if (!form.name || form.price <= 0 || form.stock < 0) {
-      toast.error("Invalid input");
-      return;
-    }
+  const deleteProduct = async id => {
+    if (!window.confirm("Delete product?")) return;
 
-    await axios.post(API, form, { headers: { role } });
-    toast.success("Product added");
-    setForm({ name: "", description: "", price: "", stock: "", imageUrl: "" });
-    fetchProducts();
+    try {
+      await axios.delete(
+        `http://localhost:5001/api/products/${id}`,
+        { headers: { role } }
+      );
+      toast.success("Product deleted");
+      fetchProducts();
+    } catch {
+      toast.error("Delete failed");
+    }
   };
 
   return (
-    <Box p={4}>
-      <Typography variant="h5" mb={2}>
-        Product Management
-      </Typography>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Stack direction="row" justifyContent="space-between" mb={3}>
+        <Typography variant="h5" fontWeight="bold">
+          Product Management
+        </Typography>
 
-      {/* ➕ Add Product */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Name" name="name" fullWidth onChange={handleChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Price" name="price" type="number" fullWidth onChange={handleChange} />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField label="Description" name="description" fullWidth onChange={handleChange} />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField label="Stock" name="stock" type="number" fullWidth onChange={handleChange} />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField label="Image URL" name="imageUrl" fullWidth onChange={handleChange} />
-            </Grid>
-          </Grid>
+        <Button
+          startIcon={<AddIcon />}
+          variant="contained"
+          disabled={role !== "Admin"}
+          onClick={() => {
+            setEditProduct(null);
+            setOpenForm(true);
+          }}
+        >
+          Add Product
+        </Button>
+      </Stack>
 
-          <Button sx={{ mt: 2 }} variant="contained" onClick={addProduct}>
-            Add Product
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* 📦 Product List */}
-      <Grid container spacing={2}>
-        {products.map((p) => (
-          <Grid item xs={12} sm={4} key={p._id}>
-            <Card>
+      <Grid container spacing={3}>
+        {products.map(p => (
+          <Grid item xs={12} sm={6} md={4} key={p._id}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardMedia
+                component="img"
+                height="160"
+                image={p.image || "https://via.placeholder.com/300"}
+              />
               <CardContent>
-                <Typography variant="h6">{p.name}</Typography>
-                <Typography>₹{p.price}</Typography>
-                <Typography color={p.stock > 0 ? "green" : "red"}>
-                  {p.stock > 0 ? "In Stock" : "Out of Stock"}
+                <Typography fontWeight="bold">{p.name}</Typography>
+                <Typography color="text.secondary" noWrap>
+                  {p.description}
                 </Typography>
+
+                <Typography mt={1}>
+                  ₹{p.price} | Stock: {p.stock}
+                </Typography>
+
+                <Stack direction="row" spacing={1} mt={2}>
+                  <IconButton
+                    disabled={role !== "Admin"}
+                    onClick={() => {
+                      setEditProduct(p);
+                      setOpenForm(true);
+                    }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+
+                  <IconButton
+                    disabled={role !== "Admin"}
+                    onClick={() => deleteProduct(p._id)}
+                  >
+                    <DeleteIcon color="error" />
+                  </IconButton>
+                </Stack>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
-    </Box>
+
+      <ProductForm
+        open={openForm}
+        onClose={() => setOpenForm(false)}
+        editProduct={editProduct}
+        refresh={fetchProducts}
+      />
+    </Container>
   );
 }
