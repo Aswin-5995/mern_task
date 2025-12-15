@@ -17,7 +17,7 @@ export default function Checkout() {
     if(!customerName||!phone||!address){ toast.error("Fill all fields"); return; }
 
     try {
-      await axios.post("http://localhost:5000/api/orders",{customerName,phone,address,items:cart,total,paymentMode});
+      await axios.post("http://localhost:5001/api/orders",{customerName,phone,address,items:cart,total,paymentMode});
       toast.success("Order placed"); setCart([]);
     } catch(e){ toast.error("Failed"); }
   };

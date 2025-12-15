@@ -7,7 +7,7 @@ export default function ProductList() {
   const [search, setSearch] = useState("");
   const { cart, setCart } = useContext(CartContext);
 
-  useEffect(() => { axios.get("http://localhost:5000/api/products").then(res => setProducts(res.data)); }, []);
+  useEffect(() => { axios.get("http://localhost:5001/api/products").then(res => setProducts(res.data)); }, []);
 
   const addToCart = (product) => {
     const exists = cart.find(item => item._id === product._id);
