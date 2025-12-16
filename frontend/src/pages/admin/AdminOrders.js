@@ -14,7 +14,9 @@ import {
   CardContent,
   Grid,
   Chip,
-  Stack
+  Stack,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 const STATUS_COLOR = {
@@ -22,56 +24,68 @@ const STATUS_COLOR = {
   Accepted: "info",
   Packed: "warning",
   "Out for Delivery": "primary",
-  Delivered: "success"
+  Delivered: "success",
 };
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    axios.get("http://localhost:5001/api/orders")
-      .then(res => setOrders(res.data));
+  const API_URL = process.env.REACT_APP_API_URL;
 
-    socket.on("newOrderPlaced", order => {
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/orders`);
+        setOrders(res.data);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+        setSnackbar({ open: true, message: "Failed to load orders", severity: "error" });
+      }
+    };
+
+    fetchOrders();
+
+    const handleNewOrder = (order) => {
       order._isNew = true;
-      setOrders(prev => [order, ...prev]);
+      setOrders((prev) => [order, ...prev]);
 
       setTimeout(() => {
-        setOrders(prev =>
-          prev.map(o =>
-            o._id === order._id ? { ...o, _isNew: false } : o
-          )
+        setOrders((prev) =>
+          prev.map((o) => (o._id === order._id ? { ...o, _isNew: false } : o))
         );
       }, 5000);
-    });
+    };
 
-    socket.on("orderStatusUpdated", updated => {
-      setOrders(prev =>
-        prev.map(o => o._id === updated._id ? updated : o)
-      );
-    });
+    const handleStatusUpdate = (updated) => {
+      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+      setSnackbar({ open: true, message: `Order ${updated._id} updated`, severity: "info" });
+    };
+
+    socket.on("newOrderPlaced", handleNewOrder);
+    socket.on("orderStatusUpdated", handleStatusUpdate);
 
     return () => {
-      socket.off("newOrderPlaced");
-      socket.off("orderStatusUpdated");
+      socket.off("newOrderPlaced", handleNewOrder);
+      socket.off("orderStatusUpdated", handleStatusUpdate);
     };
   }, []);
 
-  const filteredOrders = orders.filter(o => {
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const filteredOrders = orders.filter((o) => {
     if (filter === "delivered" && o.status !== "Delivered") return false;
     if (filter === "pending" && o.status === "Delivered") return false;
     if (filter === "today") {
       const today = new Date().toDateString();
       if (new Date(o.createdAt).toDateString() !== today) return false;
     }
-    if (
-      search &&
-      !o._id.includes(search) &&
-      !o.phone.includes(search)
-    ) return false;
+    if (search && !o._id.includes(search) && !o.phone.includes(search)) return false;
 
     return true;
   });
@@ -79,11 +93,10 @@ export default function AdminOrders() {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h5" fontWeight="bold" mb={3}>
-        Admin Orders
+        Orders
       </Typography>
 
-      {/* FILTERS */}
-      <Stack direction="row" spacing={2} mb={3}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
         <ToggleButtonGroup
           value={filter}
           exclusive
@@ -96,15 +109,14 @@ export default function AdminOrders() {
         </ToggleButtonGroup>
 
         <TextField
-          placeholder="Search Order ID / Phone"
+          placeholder="Search Order ID / Phone Number"
           size="small"
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </Stack>
 
-      {/* ORDERS */}
       <Grid container spacing={3}>
-        {filteredOrders.map(o => (
+        {filteredOrders.map((o) => (
           <Grid item xs={12} md={6} key={o._id}>
             <Card
               onClick={() => navigate(`/admin/orders/${o._id}`)}
@@ -113,15 +125,13 @@ export default function AdminOrders() {
                 borderRadius: 3,
                 bgcolor: o._isNew ? "#e3f2fd" : "#fff",
                 transition: "0.3s",
-                "&:hover": { boxShadow: 6 }
+                "&:hover": { boxShadow: 6 },
               }}
             >
               <CardContent>
                 <Stack spacing={1}>
                   <Box display="flex" justifyContent="space-between">
-                    <Typography fontWeight="bold">
-                      {o.customerName}
-                    </Typography>
+                    <Typography fontWeight="bold">{o.customerName}</Typography>
                     <Chip
                       label={o.status}
                       color={STATUS_COLOR[o.status]}
@@ -129,19 +139,27 @@ export default function AdminOrders() {
                     />
                   </Box>
 
-                  <Typography color="text.secondary">
-                    📞 {o.phone}
-                  </Typography>
+                  <Typography color="text.secondary">📞 {o.phone}</Typography>
 
-                  <Typography fontWeight="bold">
-                    ₹{o.total}
-                  </Typography>
+                  <Typography fontWeight="bold">₹{o.total}</Typography>
                 </Stack>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
+
+      
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

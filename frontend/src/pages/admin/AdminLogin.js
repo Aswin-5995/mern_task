@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 import {
   Box,
@@ -9,7 +8,9 @@ import {
   CardContent,
   TextField,
   Typography,
-  Avatar
+  Avatar,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
@@ -17,6 +18,8 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
@@ -24,7 +27,7 @@ export default function AdminLogin() {
 
     const creds = [
       { username: "admin", password: "admin@123", role: "Admin" },
-      { username: "staff", password: "staff@123", role: "Staff" }
+      { username: "staff", password: "staff@123", role: "Staff" },
     ];
 
     const user = creds.find(
@@ -33,11 +36,17 @@ export default function AdminLogin() {
 
     if (user) {
       localStorage.setItem("role", user.role);
-      toast.success(`Welcome ${user.role}`);
-      navigate("/admin/orders");
+      setSnackbar({ open: true, message: `Welcome ${user.role}`, severity: "success" });
+
+      
+      setTimeout(() => navigate("/admin/orders"), 1000);
     } else {
-      toast.error("Invalid credentials");
+      setSnackbar({ open: true, message: "Invalid credentials", severity: "error" });
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -47,46 +56,35 @@ export default function AdminLogin() {
         background: "linear-gradient(135deg, #ff6f00, #ff9800)",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
       }}
     >
       <Card
         sx={{
           width: 380,
           borderRadius: 3,
-          boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+          boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
         }}
       >
         <CardContent sx={{ p: 4 }}>
           
-          {/* ICON */}
           <Box display="flex" justifyContent="center" mb={2}>
             <Avatar
               sx={{
                 bgcolor: "#ff6f00",
                 width: 56,
-                height: 56
+                height: 56,
               }}
             >
               <AdminPanelSettingsIcon />
             </Avatar>
           </Box>
 
-          <Typography
-            variant="h5"
-            textAlign="center"
-            fontWeight="bold"
-            mb={1}
-          >
-            Admin Login
+          <Typography variant="h5" textAlign="center" fontWeight="bold" mb={1}>
+            Admin / Staff Login
           </Typography>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            textAlign="center"
-            mb={3}
-          >
+          <Typography variant="body2" color="text.secondary" textAlign="center" mb={3}>
             Sign in to manage orders
           </Typography>
 
@@ -117,28 +115,30 @@ export default function AdminLogin() {
                 py: 1.3,
                 borderRadius: 2,
                 fontWeight: "bold",
-                background:
-                  "linear-gradient(90deg, #ff6f00, #ff9800)",
+                background: "linear-gradient(90deg, #ff6f00, #ff9800)",
                 color: "#fff",
                 "&:hover": {
-                  background:
-                    "linear-gradient(90deg, #ff9800, #ff6f00)"
-                }
+                  background: "linear-gradient(90deg, #ff9800, #ff6f00)",
+                },
               }}
             >
               Login
             </Button>
           </form>
-
-          {/* DEMO CREDS */}
-          <Box mt={3} textAlign="center">
-            <Typography variant="caption" color="text.secondary">
-              Admin → admin / admin123 <br />
-              Staff → staff / staff123
-            </Typography>
-          </Box>
         </CardContent>
       </Card>
+
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

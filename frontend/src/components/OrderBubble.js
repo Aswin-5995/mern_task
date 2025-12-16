@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  Fab,
-  Badge
-} from "@mui/material";
+import { Fab, Badge } from "@mui/material";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import OrderDrawer from "./OrderDrawer";
 
@@ -19,7 +16,7 @@ export default function OrderBubble() {
           bottom: 24,
           right: 24,
           zIndex: 1300,
-          background: "linear-gradient(90deg,#ff6f00,#ff9800)"
+          background: "linear-gradient(90deg,#ff6f00,#ff9800)",
         }}
       >
         <Badge color="error" variant="dot">

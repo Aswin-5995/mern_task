@@ -1,21 +1,30 @@
 const Product = require("../models/Product");
 
-exports.getProducts = async (req, res) => {
+const getProducts = async (req, res) => {
   const products = await Product.find();
   res.json(products);
 };
 
-exports.createProduct = async (req, res) => {
+const createProduct = async (req, res) => {
   const product = await Product.create(req.body);
   res.json(product);
 };
 
-exports.updateProduct = async (req, res) => {
+const updateProduct = async (req, res) => {
   const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(updated);
 };
 
-exports.deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res) => {
   await Product.findByIdAndDelete(req.params.id);
   res.json({ message: "Product deleted" });
+};
+
+
+
+module.exports = {
+  createProduct,
+  getProducts,
+  updateProduct,
+  deleteProduct,
 };

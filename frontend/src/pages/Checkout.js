@@ -16,7 +16,9 @@ import {
   Paper,
   Radio,
   RadioGroup,
-  FormControlLabel
+  FormControlLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
@@ -25,38 +27,66 @@ export default function Checkout() {
   const { cart, setCart } = useContext(CartContext);
   const navigate = useNavigate();
 
+  const API_URL = process.env.REACT_APP_API_URL;
   const [form, setForm] = useState({
     customerName: "",
     phone: "",
     address: "",
-    paymentMode: "COD"
+    paymentMode: "COD",
+  });
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
   });
 
   const total = cart.reduce((a, c) => a + c.price * c.qty, 0);
 
   const placeOrder = async () => {
-  if (cart.length === 0) return;
-  if (!form.customerName || !form.phone || !form.address) return;
+    if (
+      cart.length === 0 ||
+      !form.customerName ||
+      !form.phone ||
+      !form.address
+    ) {
+      setSnackbar({
+        open: true,
+        message: "Please fill all details",
+        severity: "warning",
+      });
+      return;
+    }
 
-  try {
-    console.log("workingg");
-
-    const res = await axios.post(
-      "http://localhost:5001/api/orders",
-      {
+    try {
+      const res = await axios.post(`${API_URL}/orders`, {
         ...form,
         items: cart,
-        total
-      }
-    );
+        total,
+      });
 
-    setCart([]);
-    navigate(`/order/${res.data._id}`);
-  } catch (err) {
-    console.error("Order error:", err.response || err.message);
-  }
-};
+      setCart([]);
+      setSnackbar({
+        open: true,
+        message: "Order placed successfully!",
+        severity: "success",
+      });
 
+ 
+      setTimeout(() => navigate(`/`), 1500);
+    } catch (error) {
+      console.error("Order error:", error.response || error.message);
+      setSnackbar({
+        open: true,
+        message: "Failed to place order",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -65,13 +95,11 @@ export default function Checkout() {
       </Typography>
 
       <Stack spacing={3}>
-        
-        {/* DELIVERY DETAILS */}
         <Card sx={{ borderRadius: 3 }}>
           <CardContent>
             <Stack direction="row" spacing={1} alignItems="center" mb={2}>
               <LocalShippingIcon color="primary" />
-              <Typography variant="h6">Delivery Details</Typography>
+              <Typography variant="h6">Delivery Detail</Typography>
             </Stack>
 
             <TextField
@@ -89,9 +117,7 @@ export default function Checkout() {
               label="Phone Number"
               margin="normal"
               value={form.phone}
-              onChange={(e) =>
-                setForm({ ...form, phone: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
 
             <TextField
@@ -101,18 +127,15 @@ export default function Checkout() {
               rows={3}
               margin="normal"
               value={form.address}
-              onChange={(e) =>
-                setForm({ ...form, address: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
           </CardContent>
         </Card>
 
-        {/* PAYMENT MODE */}
         <Card sx={{ borderRadius: 3 }}>
           <CardContent>
             <Typography variant="h6" mb={1}>
-              Payment Method
+              Payment Methods
             </Typography>
 
             <RadioGroup
@@ -129,19 +152,18 @@ export default function Checkout() {
               <FormControlLabel
                 value="ONLINE"
                 control={<Radio />}
-                label="Online Payment (Dummy)"
+                label="Online Payment"
               />
             </RadioGroup>
           </CardContent>
         </Card>
 
-        {/* ORDER SUMMARY */}
         <Paper sx={{ p: 3, borderRadius: 3 }}>
           <Typography variant="h6" mb={2}>
             Order Summary
           </Typography>
 
-          {cart.map(item => (
+          {cart.map((item) => (
             <Stack
               key={item._id}
               direction="row"
@@ -151,9 +173,7 @@ export default function Checkout() {
               <Typography>
                 {item.name} × {item.qty}
               </Typography>
-              <Typography>
-                ₹{item.price * item.qty}
-              </Typography>
+              <Typography>₹{item.price * item.qty}</Typography>
             </Stack>
           ))}
 
@@ -165,7 +185,6 @@ export default function Checkout() {
           </Stack>
         </Paper>
 
-        {/* PLACE ORDER */}
         <Button
           size="large"
           disabled={cart.length === 0}
@@ -175,12 +194,27 @@ export default function Checkout() {
             borderRadius: 3,
             fontWeight: "bold",
             background: "linear-gradient(90deg, #ff6f00, #ff9800)",
-            color: "#fff"
+            color: "#fff",
           }}
         >
           Place Order
         </Button>
       </Stack>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

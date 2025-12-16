@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { socket } from "../webSocket";
 
@@ -9,42 +9,54 @@ import {
   Typography,
   Paper,
   Stack,
-  Divider
+  Divider,
+  IconButton,
 } from "@mui/material";
 
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const STAGES = [
   "Placed",
   "Accepted",
   "Packed",
   "Out for Delivery",
-  "Delivered"
+  "Delivered",
 ];
 
 export default function OrderTracking() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
+  const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    // join order room
+    if (!id) return;
+
     socket.emit("joinOrder", id);
 
-    // initial fetch
-    axios
-      .get(`http://localhost:5001/api/orders/${id}`)
-      .then(res => setOrder(res.data));
+    const fetchOrder = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/orders/${id}`);
+        setOrder(res.data);
+      } catch (error) {
+        console.error("Failed to fetch order:", error);
+      }
+    };
 
-    // listen for updates
-    socket.on("orderStatusUpdated", updated => {
+    fetchOrder();
+
+    const handleStatusUpdate = (updated) => {
       if (updated._id === id) {
         setOrder(updated);
       }
-    });
+    };
+
+    socket.on("orderStatusUpdated", handleStatusUpdate);
 
     return () => {
-      socket.off("orderStatusUpdated");
+      socket.off("orderStatusUpdated", handleStatusUpdate);
     };
   }, [id]);
 
@@ -54,13 +66,17 @@ export default function OrderTracking() {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+        <IconButton onClick={() => navigate(-1)}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h5" fontWeight="bold">
+          Order Tracking
+        </Typography>
+      </Stack>
+
       <Paper sx={{ p: 3, borderRadius: 3 }}>
-        
-        {/* HEADER */}
         <Stack spacing={1} mb={3}>
-          <Typography variant="h6" fontWeight="bold">
-            Order Tracking
-          </Typography>
           <Typography color="text.secondary">
             Order ID: {order._id.slice(-6).toUpperCase()}
           </Typography>
@@ -68,20 +84,13 @@ export default function OrderTracking() {
 
         <Divider sx={{ mb: 3 }} />
 
-        {/* TIMELINE */}
         <Stack spacing={3}>
           {STAGES.map((stage, index) => {
             const isCompleted = index < currentIndex;
             const isActive = index === currentIndex;
 
             return (
-              <Box
-                key={stage}
-                display="flex"
-                alignItems="center"
-                gap={2}
-              >
-                {/* DOT */}
+              <Box key={stage} display="flex" alignItems="center" gap={2}>
                 <Box
                   sx={{
                     width: 16,
@@ -92,13 +101,10 @@ export default function OrderTracking() {
                       : isActive
                       ? "warning.main"
                       : "grey.400",
-                    animation: isActive
-                      ? "pulse 1.5s infinite"
-                      : "none"
+                    animation: isActive ? "pulse 1.5s infinite" : "none",
                   }}
                 />
 
-                {/* TEXT */}
                 <Typography
                   fontWeight={isActive ? "bold" : "normal"}
                   color={
@@ -113,10 +119,7 @@ export default function OrderTracking() {
                 </Typography>
 
                 {isCompleted && (
-                  <CheckCircleIcon
-                    fontSize="small"
-                    color="success"
-                  />
+                  <CheckCircleIcon fontSize="small" color="success" />
                 )}
               </Box>
             );
@@ -125,19 +128,13 @@ export default function OrderTracking() {
 
         <Divider sx={{ my: 3 }} />
 
-        {/* DELIVERY ETA */}
         <Stack direction="row" alignItems="center" gap={1}>
           <LocalShippingIcon color="primary" />
-          <Typography fontWeight="bold">
-            Estimated Delivery:
-          </Typography>
-          <Typography color="text.secondary">
-            30 mins
-          </Typography>
+          <Typography fontWeight="bold">Estimated Delivery:</Typography>
+          <Typography color="text.secondary">30 mins</Typography>
         </Stack>
       </Paper>
 
-      {/* ANIMATION */}
       <style>
         {`
           @keyframes pulse {

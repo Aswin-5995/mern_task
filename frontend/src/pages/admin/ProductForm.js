@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
 
 import {
   Dialog,
@@ -8,10 +7,10 @@ import {
   DialogContent,
   TextField,
   Button,
-  Stack
+  Stack,
 } from "@mui/material";
 
-export default function ProductForm({ open, onClose, editProduct, refresh }) {
+export default function ProductForm({ open, onClose, editProduct, refresh, showSnackbar }) {
   const role = localStorage.getItem("role");
 
   const [form, setForm] = useState({
@@ -21,6 +20,8 @@ export default function ProductForm({ open, onClose, editProduct, refresh }) {
     stock: "",
     image: ""
   });
+
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     if (editProduct) {
@@ -37,38 +38,38 @@ export default function ProductForm({ open, onClose, editProduct, refresh }) {
   }, [editProduct]);
 
   const submit = async () => {
-    if (!form.name) return toast.error("Name required");
-    if (form.price <= 0) return toast.error("Price must be > 0");
-    if (form.stock < 0) return toast.error("Stock cannot be negative");
+    if (!form.name) return showSnackbar("Name required", "error");
+    if (form.price <= 0) return showSnackbar("Price must be > 0", "error");
+    if (form.stock < 0) return showSnackbar("Stock cannot be negative", "error");
 
     try {
       if (editProduct) {
         await axios.put(
-          `http://localhost:5001/api/products/${editProduct._id}`,
+          `${API_URL}/products/${editProduct._id}`,
           form,
           { headers: { role } }
         );
-        toast.success("Product updated");
+        showSnackbar("Product updated", "success");
       } else {
         await axios.post(
-          "http://localhost:5001/api/products",
+          `${API_URL}/products`,
           form,
           { headers: { role } }
         );
-        toast.success("Product added");
+        showSnackbar("Product added", "success");
       }
+
       refresh();
       onClose();
-    } catch {
-      toast.error("Operation failed");
+    } catch (error) {
+      console.error("Product submit failed:", error);
+      showSnackbar("Operation failed", "error");
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
-      <DialogTitle>
-        {editProduct ? "Edit Product" : "Add Product"}
-      </DialogTitle>
+      <DialogTitle>{editProduct ? "Edit Product" : "Add Product"}</DialogTitle>
 
       <DialogContent>
         <Stack spacing={2} mt={1}>
@@ -109,6 +110,11 @@ export default function ProductForm({ open, onClose, editProduct, refresh }) {
             variant="contained"
             onClick={submit}
             disabled={role !== "Admin"}
+            sx={{
+              fontWeight: "bold",
+              background: "linear-gradient(90deg, #ff6f00, #ff9800)",
+              "&:hover": { background: "linear-gradient(90deg, #ff9800, #ff6f00)" },
+            }}
           >
             {editProduct ? "Update" : "Add"}
           </Button>

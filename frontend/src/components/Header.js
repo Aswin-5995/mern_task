@@ -9,7 +9,7 @@ import {
   Badge,
   Box,
   Button,
-  useMediaQuery
+  useMediaQuery,
 } from "@mui/material";
 
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -37,37 +37,38 @@ export default function Header() {
         position="sticky"
         elevation={0}
         sx={{
-          background: "linear-gradient(90deg, #ff6f00, #ff9800)"
+          background: "linear-gradient(90deg, #ff6f00, #ff9800)",
         }}
       >
         <Toolbar
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            px: { xs: 1, sm: 2 }
+            px: { xs: 1, sm: 2 },
           }}
         >
-          {/* LOGO */}
           <Box
             display="flex"
             alignItems="center"
             gap={1}
             sx={{ cursor: "pointer" }}
-            onClick={() => navigate("/")}
+            onClick={() => {
+              localStorage.removeItem("role");
+              localStorage.removeItem("token");
+              navigate("/");
+            }}
           >
             <StorefrontIcon />
             <Typography
               fontWeight="bold"
               sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
             >
-              Foodiee
+              Bite Boxx
             </Typography>
           </Box>
 
-          {/* ACTIONS */}
           <Box display="flex" alignItems="center" gap={{ xs: 0.5, sm: 2 }}>
-            
-            {/* ADMIN LOGIN */}
+            {/* admin login desktop */}
             {!isMobile && (
               <Button
                 color="inherit"
@@ -78,8 +79,8 @@ export default function Header() {
               </Button>
             )}
 
-            {/* ADMIN PRODUCTS */}
-            {role === "Admin" && !isMobile && (
+            {/* add product */}
+            {role === "Admin" && (
               <Button
                 color="inherit"
                 onClick={() => navigate("/admin/products")}
@@ -88,7 +89,7 @@ export default function Header() {
               </Button>
             )}
 
-            {/* MOBILE ADMIN ICON */}
+            {/* admin login mobile */}
             {isMobile && (
               <IconButton
                 color="inherit"
@@ -98,25 +99,24 @@ export default function Header() {
               </IconButton>
             )}
 
-            {/* CART */}
-            <IconButton
-              color="inherit"
-              onClick={() => setOpenCart(true)}
-              sx={{ ml: 0.5 }}
-            >
-              <Badge badgeContent={cartCount} color="error">
-                <ShoppingCartIcon />
-              </Badge>
-            </IconButton>
+            {/* cart */}
+            {role !== "Admin" && role !== "Staff" && (
+              <IconButton
+                color="inherit"
+                onClick={() => setOpenCart(true)}
+                sx={{ ml: 0.5 }}
+              >
+                <Badge badgeContent={cartCount} color="error">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* CART DRAWER */}
-      <CartDrawer
-        open={openCart}
-        onClose={() => setOpenCart(false)}
-      />
+      {/* cart drawer */}
+      <CartDrawer open={openCart} onClose={() => setOpenCart(false)} />
     </>
   );
 }

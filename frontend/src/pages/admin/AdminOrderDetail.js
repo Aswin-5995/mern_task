@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; 
 import axios from "axios";
 import { socket } from "../../webSocket";
-import { toast } from "react-toastify";
 
 import {
   Container,
@@ -11,38 +10,61 @@ import {
   Stack,
   Divider,
   Select,
-  MenuItem
+  MenuItem,
+  Snackbar,
+  Alert,
+  Button,
 } from "@mui/material";
 
-const STATUSES = [
-  "Placed",
-  "Accepted",
-  "Packed",
-  "Out for Delivery",
-  "Delivered"
-];
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
+const STATUS = ["Placed", "Accepted", "Packed", "Out for Delivery", "Delivered"];
 
 export default function AdminOrderDetail() {
   const { id } = useParams();
+  const navigate = useNavigate(); 
   const [order, setOrder] = useState(null);
   const role = localStorage.getItem("role");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    axios.get(`http://localhost:5001/api/orders/${id}`)
-      .then(res => setOrder(res.data));
+    const fetchOrder = async () => {
+      if (!id) return;
+
+      try {
+        const res = await axios.get(`${API_URL}/orders/${id}`);
+        setOrder(res.data);
+      } catch (error) {
+        console.error("Failed to fetch order:", error);
+        setSnackbar({ open: true, message: "Failed to load order", severity: "error" });
+      }
+    };
+
+    fetchOrder();
   }, [id]);
 
-  const updateStatus = async status => {
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const updateStatus = async (status) => {
     try {
       const res = await axios.put(
-        `http://localhost:5001/api/orders/${id}/status`,
+        `${API_URL}/orders/${id}/status`,
         { status },
         { headers: { role } }
       );
+
       setOrder(res.data);
-      toast.success("Status updated");
-    } catch {
-      toast.error("Failed");
+
+      socket.emit("orderStatusUpdated", res.data);
+
+      setSnackbar({ open: true, message: "Status updated", severity: "success" });
+    } catch (error) {
+      console.error("Status update failed:", error);
+      setSnackbar({ open: true, message: "Failed to update status", severity: "error" });
     }
   };
 
@@ -50,6 +72,15 @@ export default function AdminOrderDetail() {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
+   
+      <Button
+        startIcon={<ArrowBackIcon />}
+        sx={{ mb: 2 }}
+        onClick={() => navigate(-1)}
+      >
+        Back
+      </Button>
+
       <Paper sx={{ p: 3, borderRadius: 3 }}>
         <Typography variant="h6" fontWeight="bold" mb={2}>
           Order Details
@@ -63,42 +94,49 @@ export default function AdminOrderDetail() {
 
         <Divider sx={{ my: 2 }} />
 
-        {order.items.map(i => (
-          <Stack
-            key={i._id}
-            direction="row"
-            justifyContent="space-between"
-          >
+        {order.items.map((i) => (
+          <Stack key={i._id} direction="row" justifyContent="space-between">
             <Typography>
               {i.name} × {i.qty}
             </Typography>
-            <Typography>
-              ₹{i.price * i.qty}
-            </Typography>
+            <Typography>₹{i.price * i.qty}</Typography>
           </Stack>
         ))}
 
         <Divider sx={{ my: 2 }} />
 
-        <Typography fontWeight="bold">
-          Total: ₹{order.total}
-        </Typography>
+        <Typography fontWeight="bold">Total: ₹{order.total}</Typography>
 
         <Divider sx={{ my: 2 }} />
 
         <Select
           fullWidth
           value={order.status}
-          onChange={e => updateStatus(e.target.value)}
+          onChange={(e) => updateStatus(e.target.value)}
           disabled={role !== "Admin"}
         >
-          {STATUSES.map(s => (
+          {STATUS.map((s) => (
             <MenuItem key={s} value={s}>
               {s}
             </MenuItem>
           ))}
         </Select>
       </Paper>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

@@ -5,7 +5,7 @@ import {
   IconButton,
   Button,
   Divider,
-  Stack
+  Stack,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -24,24 +24,27 @@ export default function CartDrawer({ open, onClose }) {
   const total = cart.reduce((a, c) => a + c.price * c.qty, 0);
 
   const decreaseQty = (id) => {
-    setCart(prev =>
+    setCart((prev) =>
       prev
-        .map(p =>
-          p._id === id ? { ...p, qty: p.qty - 1 } : p
-        )
-        .filter(p => p.qty > 0)
+        .map((p) => (p._id === id ? { ...p, qty: p.qty - 1 } : p))
+        .filter((p) => p.qty > 0)
     );
   };
 
   const removeItem = (id) => {
-    setCart(prev => prev.filter(p => p._id !== id));
+    setCart((prev) => prev.filter((p) => p._id !== id));
   };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box width={360} p={2} height="100%" display="flex" flexDirection="column">
-
-        {/* HEADER */}
+      <Box
+        width={360}
+        p={2}
+        height="100%"
+        display="flex"
+        flexDirection="column"
+      >
+      
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6" fontWeight="bold">
             Your Cart
@@ -53,20 +56,18 @@ export default function CartDrawer({ open, onClose }) {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* EMPTY CART */}
+      
         {cart.length === 0 && (
           <Typography color="text.secondary" textAlign="center">
             Your cart is empty
           </Typography>
         )}
 
-        {/* CART ITEMS */}
+       
         <Box flex={1} overflow="auto">
-          {cart.map(item => (
+          {cart.map((item) => (
             <Box key={item._id} mb={2}>
-              <Typography fontWeight="bold">
-                {item.name}
-              </Typography>
+              <Typography fontWeight="bold">{item.name}</Typography>
 
               <Stack
                 direction="row"
@@ -85,10 +86,7 @@ export default function CartDrawer({ open, onClose }) {
                     <RemoveIcon />
                   </IconButton>
 
-                  <IconButton
-                    size="small"
-                    onClick={() => addToCart(item)}
-                  >
+                  <IconButton size="small" onClick={() => addToCart(item)}>
                     <AddIcon />
                   </IconButton>
 
@@ -105,7 +103,7 @@ export default function CartDrawer({ open, onClose }) {
           ))}
         </Box>
 
-        {/* FOOTER */}
+       
         {cart.length > 0 && (
           <>
             <Divider sx={{ my: 2 }} />
@@ -124,13 +122,11 @@ export default function CartDrawer({ open, onClose }) {
               sx={{
                 borderRadius: 3,
                 fontWeight: "bold",
-                background:
-                  "linear-gradient(90deg, #ff6f00, #ff9800)",
+                background: "linear-gradient(90deg, #ff6f00, #ff9800)",
                 color: "#fff",
                 "&:hover": {
-                  background:
-                    "linear-gradient(90deg, #ff9800, #ff6f00)"
-                }
+                  background: "linear-gradient(90deg, #ff9800, #ff6f00)",
+                },
               }}
             >
               Proceed to Checkout

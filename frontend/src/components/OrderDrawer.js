@@ -14,13 +14,23 @@ import { useNavigate } from "react-router-dom";
 export default function OrderDrawer({ open, onClose }) {
   const [orders, setOrders] = useState([]);
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
 
-  useEffect(() => {
-    if (open) {
-      axios.get("http://localhost:5001/api/orders?me=true")
-        .then(res => setOrders(res.data));
+
+useEffect(() => {
+  const fetchOrders = async () => {
+    if (!open) return;
+
+    try {
+      const res = await axios.get(`${API_URL}/orders?me=true`);
+      setOrders(res.data);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
     }
-  }, [open]);
+  };
+
+  fetchOrders();
+}, [open]);
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>

@@ -7,9 +7,9 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart((prev) => {
-      const item = prev.find(p => p._id === product._id);
+      const item = prev.find((p) => p._id === product._id);
       if (item) {
-        return prev.map(p =>
+        return prev.map((p) =>
           p._id === product._id ? { ...p, qty: p.qty + 1 } : p
         );
       }

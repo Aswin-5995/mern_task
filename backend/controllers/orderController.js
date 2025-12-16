@@ -1,13 +1,11 @@
 const Order = require("../models/Order");
 
-exports.createOrder = async (req, res) => {
+const createOrder = async (req, res) => {
   try {
     const order = await Order.create(req.body);
 
-        console.log("workingg")
+    console.log("workingg");
 
-
-    /* ✅ SAFE CHECK */
     if (req.io) {
       req.io.emit("newOrderPlaced", order);
     }
@@ -17,12 +15,12 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-exports.getOrders = async (req, res) => {
+const getOrders = async (req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
   res.json(orders);
 };
 
-exports.getOrderById = async (req, res) => {
+const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
 
@@ -36,8 +34,7 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
-
-exports.updateOrderStatus = async (req, res) => {
+const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -53,4 +50,11 @@ exports.updateOrderStatus = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+module.exports = {
+  createOrder,
+  getOrders,
+  getOrderById,
+  updateOrderStatus,
 };

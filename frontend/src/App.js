@@ -12,7 +12,6 @@ import Header from "./components/Header";
 import { CartProvider } from "./context/CartContext";
 import AdminRoute from "./routes/AdminRoute";
 import AdminProducts from "./pages/admin/AdminProducts";
-import OrderBubble from "./components/OrderBubble";
 
 export default function App() {
   return (
@@ -21,15 +20,12 @@ export default function App() {
         <Header />
 
         <Routes>
-          {/* CUSTOMER */}
           <Route path="/" element={<Products />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order/:id" element={<OrderTracking />} />
 
-          {/* ADMIN AUTH */}
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* ADMIN PROTECTED */}
           <Route
             path="/admin/orders"
             element={
@@ -48,15 +44,14 @@ export default function App() {
             }
           />
           <Route
-  path="/admin/products"
-  element={
-    <AdminRoute>
-      <AdminProducts />
-    </AdminRoute>
-  }
-/>
+            path="/admin/products"
+            element={
+              <AdminRoute>
+                <AdminProducts />
+              </AdminRoute>
+            }
+          />
         </Routes>
-          <OrderBubble />
       </BrowserRouter>
     </CartProvider>
   );
