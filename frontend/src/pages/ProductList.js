@@ -17,7 +17,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-
+import OrderBubble from "../components/OrderBubble";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
 export default function Products() {
@@ -35,6 +35,7 @@ export default function Products() {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(`${API_URL}/products`);
+        console.log(res.data)
         setProducts(res.data);
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -63,17 +64,16 @@ export default function Products() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
-  
       <TextField
         fullWidth
         placeholder="Search products"
         variant="outlined"
         value={search}
-        sx={{ 
+        sx={{
           mb: 4,
-          '& .MuiOutlinedInput-root': {
+          "& .MuiOutlinedInput-root": {
             borderRadius: 2,
-          }
+          },
         }}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -89,7 +89,6 @@ export default function Products() {
         </Box>
       )}
 
-     
       <Box
         sx={{
           display: "grid",
@@ -112,14 +111,13 @@ export default function Products() {
               boxShadow: 1,
               border: "1px solid",
               borderColor: "divider",
-              "&:hover": { 
-                transform: "translateY(-4px)", 
+              "&:hover": {
+                transform: "translateY(-4px)",
                 boxShadow: 4,
-                borderColor: "primary.main"
+                borderColor: "primary.main",
               },
             }}
           >
-           
             {loading ? (
               <Skeleton variant="rectangular" height={220} />
             ) : (
@@ -133,26 +131,32 @@ export default function Products() {
                   justifyContent: "center",
                   overflow: "hidden",
                   borderBottom: "1px solid",
-                  borderColor: "divider"
+                  borderColor: "divider",
                 }}
               >
                 <CardMedia
                   component="img"
-                  sx={{ 
-                    height: "100%", 
+                  sx={{
+                    height: "100%",
                     width: "100%",
                     objectFit: "cover",
                   }}
-                  image={p?.image || `https://via.placeholder.com/400x220/f5f5f5/757575?text=${encodeURIComponent(p?.name || 'Product')}`}
+                  image={
+                    p?.imageUrl ||
+                    `https://via.placeholder.com/400x220/f5f5f5/757575?text=${encodeURIComponent(
+                      p?.name || "Product"
+                    )}`
+                  }
                   alt={p?.name || "Product"}
                   onError={(e) => {
-                    e.target.src = `https://via.placeholder.com/400x220/f5f5f5/757575?text=${encodeURIComponent(p?.name || 'Product')}`;
+                    e.target.src = `https://via.placeholder.com/400x220/f5f5f5/757575?text=${encodeURIComponent(
+                      p?.name || "Product"
+                    )}`;
                   }}
                 />
               </Box>
             )}
 
-          
             <CardContent
               sx={{
                 flexGrow: 1,
@@ -167,7 +171,11 @@ export default function Products() {
                   <Skeleton width="80%" height={28} sx={{ mb: 1 }} />
                   <Skeleton width="60%" height={20} sx={{ mb: 1 }} />
                   <Skeleton width="100%" height={40} sx={{ mb: 2 }} />
-                  <Box display="flex" justifyContent="space-between" sx={{ mb: 2 }}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    sx={{ mb: 2 }}
+                  >
                     <Skeleton width="30%" height={32} />
                     <Skeleton width="25%" height={24} />
                   </Box>
@@ -175,7 +183,6 @@ export default function Products() {
                 </>
               ) : (
                 <>
-                 
                   <Typography
                     variant="h6"
                     fontWeight="600"
@@ -187,13 +194,12 @@ export default function Products() {
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                       lineHeight: "26px",
-                      fontSize: "1.1rem"
+                      fontSize: "1.1rem",
                     }}
                   >
                     {p.name}
                   </Typography>
 
-               
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -205,22 +211,21 @@ export default function Products() {
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                       lineHeight: "20px",
-                      fontSize: "0.875rem"
+                      fontSize: "0.875rem",
                     }}
                   >
                     {p.description}
                   </Typography>
 
-                 
                   <Box
                     display="flex"
                     justifyContent="space-between"
                     alignItems="center"
                     sx={{ height: 32, mb: 2.5 }}
                   >
-                    <Typography 
-                      fontWeight="700" 
-                      variant="h5" 
+                    <Typography
+                      fontWeight="700"
+                      variant="h5"
                       sx={{ color: "#ff6f00" }}
                     >
                       ₹{p.price}
@@ -233,7 +238,6 @@ export default function Products() {
                     />
                   </Box>
 
-                
                   <Button
                     fullWidth
                     variant="contained"
@@ -252,8 +256,8 @@ export default function Products() {
                       },
                       "&:disabled": {
                         background: "#bdbdbd",
-                        color: "#757575"
-                      }
+                        color: "#757575",
+                      },
                     }}
                   >
                     Add to Cart
@@ -264,8 +268,8 @@ export default function Products() {
           </Card>
         ))}
       </Box>
+      <OrderBubble />
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={2000}

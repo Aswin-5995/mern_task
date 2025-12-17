@@ -5,14 +5,15 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Card,
   CardContent,
   CardMedia,
   Stack,
   IconButton,
   Snackbar,
-  Alert
+  Alert,
+  Box,
+  Chip
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -68,9 +69,9 @@ export default function AdminProducts() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
      
-      <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+      <Stack direction="row" alignItems="center" spacing={1} mb={3}>
         <IconButton onClick={() => navigate(-1)}>
           <ArrowBackIcon />
         </IconButton>
@@ -80,7 +81,7 @@ export default function AdminProducts() {
       </Stack>
 
      
-      <Stack direction="row" justifyContent="flex-end" mb={3}>
+      <Stack direction="row" justifyContent="flex-end" mb={4}>
         <Button
           startIcon={<AddIcon />}
           variant="contained"
@@ -90,69 +91,218 @@ export default function AdminProducts() {
             setOpenForm(true);
           }}
           sx={{
-            fontWeight: "bold",
+            fontWeight: "600",
+            px: 3,
+            py: 1,
+            borderRadius: 2,
             background: "linear-gradient(90deg, #ff6f00, #ff9800)",
-            "&:hover": { background: "linear-gradient(90deg, #ff9800, #ff6f00)" },
+            "&:hover": { background: "linear-gradient(90deg, #e65100, #f57c00)" },
+            "&:disabled": {
+              background: "#bdbdbd",
+              color: "#757575"
+            }
           }}
         >
           Add Product
         </Button>
       </Stack>
 
-      
-      <Grid container spacing={3}>
+     
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+          },
+          gap: 3,
+        }}
+      >
         {products.map((p) => (
-          <Grid item xs={12} sm={6} md={4} key={p._id}>
-            <Card sx={{ borderRadius: 3, "&:hover": { boxShadow: 6 } }}>
+          <Card
+            key={p._id}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              borderRadius: 2,
+              transition: "all 0.3s ease",
+              boxShadow: 1,
+              border: "1px solid",
+              borderColor: "divider",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 4,
+                borderColor: "primary.main"
+              },
+            }}
+          >
+           
+            <Box
+              sx={{
+                height: 220,
+                width: "100%",
+                backgroundColor: "#f5f5f5",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                borderBottom: "1px solid",
+                borderColor: "divider"
+              }}
+            >
               <CardMedia
                 component="img"
-                height="160"
-                image={p.image || "https://via.placeholder.com/300"}
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "cover",
+                }}
+                image={p.imageUrl || `https://via.placeholder.com/400x220/f5f5f5/757575?text=${encodeURIComponent(p.name || 'Product')}`}
+                alt={p.name || "Product"}
+                onError={(e) => {
+                  e.target.src = `https://via.placeholder.com/400x220/f5f5f5/757575?text=${encodeURIComponent(p.name || 'Product')}`;
+                }}
               />
-              <CardContent>
-                <Typography fontWeight="bold">{p.name}</Typography>
-                <Typography color="text.secondary" noWrap>
-                  {p.description}
+            </Box>
+
+          
+            <CardContent
+              sx={{
+                flexGrow: 1,
+                display: "flex",
+                flexDirection: "column",
+                p: 2,
+                pb: 2.5,
+              }}
+            >
+             
+              <Typography
+                variant="h6"
+                fontWeight="600"
+                sx={{
+                  height: 52,
+                  mb: 1,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  lineHeight: "26px",
+                  fontSize: "1.1rem"
+                }}
+              >
+                {p.name}
+              </Typography>
+
+            
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  height: 40,
+                  mb: 2,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  lineHeight: "20px",
+                  fontSize: "0.875rem"
+                }}
+              >
+                {p.description}
+              </Typography>
+
+             
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ height: 32, mb: 2.5 }}
+              >
+                <Typography
+                  fontWeight="700"
+                  variant="h5"
+                  sx={{ color: "#ff6f00" }}
+                >
+                  ₹{p.price}
                 </Typography>
+                <Chip
+                  label={`Stock: ${p.stock}`}
+                  color={p.stock > 0 ? "success" : "error"}
+                  size="small"
+                  sx={{ fontWeight: 500 }}
+                />
+              </Box>
 
-                <Typography mt={1}>
-                  ₹{p.price} | Stock: {p.stock}
-                </Typography>
+            
+              <Stack direction="row" spacing={1} sx={{ height: 40 }}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  disabled={role !== "Admin"}
+                  onClick={() => {
+                    setEditProduct(p);
+                    setOpenForm(true);
+                  }}
+                  sx={{
+                    height: 40,
+                    borderRadius: 1.5,
+                    fontWeight: "600",
+                    fontSize: "0.85rem",
+                    textTransform: "uppercase",
+                    borderColor: "#ff9800",
+                    color: "#ff6f00",
+                    "&:hover": {
+                      borderColor: "#ff6f00",
+                      backgroundColor: "rgba(255, 111, 0, 0.04)",
+                    },
+                    "&:disabled": {
+                      borderColor: "#e0e0e0",
+                      color: "#9e9e9e"
+                    }
+                  }}
+                >
+                  Edit
+                </Button>
 
-                <Stack direction="row" spacing={1} mt={2}>
-                  <IconButton
-                    disabled={role !== "Admin"}
-                    onClick={() => {
-                      setEditProduct(p);
-                      setOpenForm(true);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-
-                  <IconButton
-                    disabled={role !== "Admin"}
-                    onClick={() => deleteProduct(p._id)}
-                  >
-                    <DeleteIcon color="error" />
-                  </IconButton>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
+                <IconButton
+                  disabled={role !== "Admin"}
+                  onClick={() => deleteProduct(p._id)}
+                  sx={{
+                    height: 40,
+                    width: 40,
+                    borderRadius: 1.5,
+                    border: "1px solid",
+                    borderColor: "error.main",
+                    color: "error.main",
+                    "&:hover": {
+                      backgroundColor: "rgba(211, 47, 47, 0.04)",
+                    },
+                    "&:disabled": {
+                      borderColor: "#e0e0e0",
+                      color: "#9e9e9e"
+                    }
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Stack>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
-    
+     
       <ProductForm
         open={openForm}
         onClose={() => setOpenForm(false)}
         editProduct={editProduct}
         refresh={fetchProducts}
-        showSnackbar={showSnackbar} 
+        showSnackbar={showSnackbar}
       />
 
-    
+     
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

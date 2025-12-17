@@ -18,7 +18,7 @@ export default function ProductForm({ open, onClose, editProduct, refresh, showS
     description: "",
     price: "",
     stock: "",
-    image: ""
+    imageUrl: ""
   });
 
   const API_URL = process.env.REACT_APP_API_URL;
@@ -32,7 +32,7 @@ export default function ProductForm({ open, onClose, editProduct, refresh, showS
         description: "",
         price: "",
         stock: "",
-        image: ""
+        imageUrl: ""
       });
     }
   }, [editProduct]);
@@ -101,9 +101,9 @@ export default function ProductForm({ open, onClose, editProduct, refresh, showS
           />
 
           <TextField
-            label="Image URL (optional)"
-            value={form.image}
-            onChange={e => setForm({ ...form, image: e.target.value })}
+            label="imageUrl URL (optional)"
+            value={form.imageUrl}
+            onChange={e => setForm({ ...form, imageUrl: e.target.value })}
           />
 
           <Button

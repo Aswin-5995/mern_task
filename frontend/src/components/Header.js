@@ -68,7 +68,7 @@ export default function Header() {
           </Box>
 
           <Box display="flex" alignItems="center" gap={{ xs: 0.5, sm: 2 }}>
-            {/* admin login desktop */}
+           
             {!isMobile && (
               <Button
                 color="inherit"
@@ -79,7 +79,7 @@ export default function Header() {
               </Button>
             )}
 
-            {/* add product */}
+           
             {role === "Admin" && (
               <Button
                 color="inherit"
@@ -89,7 +89,7 @@ export default function Header() {
               </Button>
             )}
 
-            {/* admin login mobile */}
+          
             {isMobile && (
               <IconButton
                 color="inherit"
@@ -99,7 +99,7 @@ export default function Header() {
               </IconButton>
             )}
 
-            {/* cart */}
+           
             {role !== "Admin" && role !== "Staff" && (
               <IconButton
                 color="inherit"
@@ -115,7 +115,7 @@ export default function Header() {
         </Toolbar>
       </AppBar>
 
-      {/* cart drawer */}
+     
       <CartDrawer open={openCart} onClose={() => setOpenCart(false)} />
     </>
   );

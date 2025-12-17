@@ -113,7 +113,7 @@ export default function AdminOrderDetail() {
           fullWidth
           value={order.status}
           onChange={(e) => updateStatus(e.target.value)}
-          disabled={role !== "Admin"}
+          disabled={role !== "Admin" && role !== "Staff"}
         >
           {STATUS.map((s) => (
             <MenuItem key={s} value={s}>
